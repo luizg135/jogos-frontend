@@ -369,7 +369,6 @@
                 { t: 'Horas Jogadas', v: `${stats.total_horas_jogadas.toLocaleString('pt-BR')}h`, i: 'timer' },
                 { t: 'Custo Total', v: formatCurrency(stats.custo_total_biblioteca), i: 'shopping_cart' },
                 { t: 'Média das Notas', v: stats.media_notas, i: 'star', h: true },
-                { t: 'Não Iniciados', v: stats.total_na_fila, i: 'inbox' },
                 { t: 'Jogos Platinados', v: stats.total_platinados, i: 'military_tech', h: true }
             ];
             container.innerHTML = cards.map(c => `
