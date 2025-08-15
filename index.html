@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca de Jogos</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --ease-1: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* TEMA ESCURO (PADRÃO) */
+        body.dark-mode {
+            --bg-color: #0d1117;
+            --surface-color: #161b22;
+            --primary-text: #e6edf3;
+            --secondary-text: #7d8590;
+            --border-color: #30363d;
+            --accent-purple: #9370db;
+            --accent-blue: #58a6ff;
+        }
+
+        /* TEMA CLARO */
+        body.light-mode {
+            --bg-color: #f6f8fa;
+            --surface-color: #ffffff;
+            --primary-text: #24292f;
+            --secondary-text: #57606a;
+            --border-color: #d0d7de;
+            --accent-purple: #8957e5;
+            --accent-blue: #0969da;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif; background-color: var(--bg-color);
+            color: var(--primary-text); margin: 0;
+            display: flex; flex-direction: column; min-height: 100vh;
+            transition: background-color 0.3s var(--ease-1), color 0.3s var(--ease-1);
+        }
+        .container { max-width: 1400px; margin: auto; padding: clamp(16px, 4vw, 32px); width: 100%; flex-grow: 1; }
+        .header-container {
+            background-color: var(--surface-color); border: 1px solid var(--border-color);
+            padding: 24px; border-radius: 16px; margin-bottom: 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: background-color 0.3s var(--ease-1), border-color 0.3s var(--ease-1);
+        }
+        .header-content { text-align: center; flex-grow: 1; }
+        .header-content h1 { font-size: clamp(1.5rem, 4vw, 2rem); margin: 0; font-weight: 600; }
+        .header-content p { font-size: 1rem; color: var(--secondary-text); margin-top: 8px; margin-bottom: 0; }
+        
+        .header-button {
+            display: flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px;
+            background-color: transparent; color: var(--secondary-text);
+            border: 1px solid transparent;
+            border-radius: 8px; cursor: pointer; text-decoration: none;
+            transition: all 0.2s var(--ease-1);
+        }
+        .header-button:hover {
+            color: var(--primary-text); border-color: var(--border-color);
+            background-color: rgba(147, 112, 219, 0.1);
+        }
+        .header-button .material-symbols-outlined { font-size: 24px; }
+        
+        .tabs {
+            display: flex; justify-content: center; gap: 24px;
+            margin-bottom: 24px; border-bottom: 1px solid var(--border-color);
+        }
+        .tab-button {
+            padding: 0 8px 16px 8px; cursor: pointer; background-color: transparent;
+            border: none; color: var(--secondary-text); font-size: 16px; font-weight: 500;
+            border-bottom: 2px solid transparent; transition: all 0.2s ease-in-out;
+        }
+        .tab-button:hover { color: var(--primary-text); }
+        .tab-button.active { color: var(--accent-purple); border-bottom: 2px solid var(--accent-purple); }
+
+        .filter-bar {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px; margin-bottom: 32px;
+        }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-group label { font-size: 12px; font-weight: 500; color: var(--secondary-text); margin-bottom: 8px; }
+        .filter-group input, .filter-group select {
+            width: 100%; background-color: var(--bg-color); color: var(--primary-text);
+            border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-size: 14px;
+        }
+        
+        .filter-group-with-button {
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        .filter-group-with-button select {
+            flex-grow: 1;
+        }
+        #resetFiltersBtn {
+            background: transparent; color: var(--secondary-text);
+            border: 1px solid var(--border-color); border-radius: 8px;
+            height: 40px; width: 40px; padding: 0;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s var(--ease-1);
+        }
+        #resetFiltersBtn:hover {
+             color: var(--primary-text); background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-content { display: none; min-height: 500px; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .card {
+            background-color: var(--surface-color); padding: 20px; border-radius: 12px;
+            border: 1px solid var(--border-color);
+            border-bottom: 3px solid transparent;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-bottom 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            border-bottom: 3px solid var(--accent-purple);
+        }
+        .card-header { display: flex; align-items: center; gap: 12px; color: var(--secondary-text); font-weight: 500; font-size: 14px; }
+        .card-header .material-symbols-outlined { font-size: 20px; }
+        .card-content .value { font-size: clamp(1.5rem, 4vw, 1.75rem); font-weight: 700; color: var(--primary-text); margin-top: 8px; }
+        .card-content .value.highlight { color: var(--accent-purple); }
+
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+        .chart-wrapper {
+            background-color: var(--surface-color); padding: 24px; border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex; flex-direction: column;
+            height: 350px;
+        }
+        .chart-wrapper h2 {
+            margin-top: 0; margin-bottom: 24px; color: var(--secondary-text);
+            font-weight: 500; font-size: 16px;
+            text-align: center;
+        }
+        .canvas-container {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .table-container { width: 100%; overflow-x: auto; }
+        .games-table {
+            width: 100%; min-width: 700px; border-collapse: collapse;
+            background-color: var(--surface-color); border-radius: 12px; overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .games-table th, .games-table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; vertical-align: middle; }
+        .games-table th { font-weight: 600; font-size: 14px; color: var(--secondary-text); }
+        .games-table tbody tr:last-child td { border-bottom: none; }
+        .games-table tbody tr.platinado { background: linear-gradient(90deg, rgba(147, 112, 219, 0.1) 0%, rgba(147, 112, 219, 0) 100%); }
+        .game-name-cell { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+        .platinum-trophy-icon { color: var(--accent-purple); font-size: 24px !important; filter: drop-shadow(0 0 8px var(--accent-purple)); }
+
+        .message-container { text-align: center; padding: 64px; }
+        
+        footer { color: var(--secondary-text); text-align: center; padding: 24px; font-size: 0.8rem; margin-top: auto; }
+
+        @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { 
+            .summary-grid { grid-template-columns: 1fr 1fr; } 
+            .header-container { flex-direction: column; gap: 16px; }
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <main class="container">
+        <header class="header-container">
+            <button class="header-button" id="themeToggle" title="Alterar Tema">
+                <span class="material-symbols-outlined">dark_mode</span>
+            </button>
+            <div class="header-content">
+                <h1>BIBLIOTECA DE JOGOS</h1>
+                <p>Olá, Luiz! Aqui estão seus jogos.</p>
+            </div>
+            <a href="https://docs.google.com/spreadsheets/d/1SwSbLoWGecq-rfTmzgTYjBvmDfqRGF1OV7KX7QxGR_o/edit?gid=0#gid=0" class="header-button" target="_blank" title="Acessar Planilha">
+                <span class="material-symbols-outlined">table_view</span>
+            </a>
+        </header>
+
+        <section class="filter-bar">
+             <div class="filter-group"><label for="nameFilter">Buscar por Nome</label><input type="search" id="nameFilter" placeholder="Ex: Diablo IV"></div>
+             <div class="filter-group"><label for="platformFilter">Plataforma</label><select id="platformFilter"></select></div>
+             <div class="filter-group"><label for="styleFilter">Estilo</label><select id="styleFilter"></select></div>
+             <div class="filter-group filter-group-with-button">
+                <div style="width: 100%;"><label for="statusFilter">Status</label><select id="statusFilter"></select></div>
+                <button id="resetFiltersBtn" title="Limpar Filtros"><span class="material-symbols-outlined">delete_sweep</span></button>
+             </div>
+        </section>
+
+        <nav class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'dashboard')">Dashboard</button>
+            <button class="tab-button" onclick="openTab(event, 'biblioteca')">Biblioteca</button>
+        </nav>
+
+        <div id="loading" class="message-container"><p>Carregando estatísticas... 🎮</p></div>
+        <div id="error" class="message-container" style="display: none;"><p>Não foi possível carregar os dados.</p></div>
+        
+        <div id="content" style="display: none;">
+            <div id="dashboard" class="tab-content active">
+                <section id="summary" class="summary-grid"></section>
+                <section class="charts-grid">
+                    <div class="chart-wrapper"><h2>Jogos Platinados</h2><div class="canvas-container"><canvas id="platinadosChart"></canvas></div></div>
+                    <div class="chart-wrapper"><h2>Jogos por Plataforma</h2><div class="canvas-container"><canvas id="platformChart"></canvas></div></div>
+                    <div class="chart-wrapper"><h2>Estilos mais Jogados</h2><div class="canvas-container"><canvas id="styleChart"></canvas></div></div>
+                </section>
+            </div>
+            <div id="biblioteca" class="tab-content">
+                 <div id="no-data" class="message-container" style="display: none;"><p>Nenhum jogo encontrado com os filtros aplicados.</p></div>
+                <section id="table-section" class="table-container">
+                    <table class="games-table">
+                        <thead><tr><th>Nome</th><th>Plataforma</th><th>Conclusão</th><th>Nota</th><th>Horas</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer id="footer">
+        Borato, 2025 © Todos os Direitos Reservados
+    </footer>
+
+    <script>
+        const apiUrl = 'https://api-jogos-luiz.onrender.com/api/games/data';
+        let fullData = {}, charts = {};
+
+        function openTab(evt, tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = themeToggle.querySelector('.material-symbols-outlined');
+
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('light-mode');
+                document.body.classList.toggle('dark-mode');
+                const isLight = document.body.classList.contains('light-mode');
+                themeIcon.textContent = isLight ? 'dark_mode' : 'light_mode';
+                applyFilters();
+            });
+            
+            setupEventListeners();
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                fullData = await response.json();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                populateFilters();
+                applyFilters();
+            } catch (err) {
+                console.error('Erro ao buscar dados:', err);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }
+        });
+
+        function setupEventListeners() {
+            document.getElementById('nameFilter').addEventListener('input', applyFilters);
+            document.getElementById('platformFilter').addEventListener('change', applyFilters);
+            document.getElementById('styleFilter').addEventListener('change', applyFilters);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
+        }
+
+        function resetFilters() {
+            document.getElementById('nameFilter').value = '';
+            document.getElementById('platformFilter').value = 'all';
+            document.getElementById('styleFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            applyFilters();
+        }
+
+        function populateFilters() {
+            const platforms = new Set();
+            const styles = new Set();
+            const statuses = new Set();
+            fullData.biblioteca.forEach(game => {
+                if (game.Plataforma) platforms.add(game.Plataforma);
+                if (game.Status) statuses.add(game.Status);
+                if (game.Estilo) {
+                    game.Estilo.split(',').forEach(style => styles.add(style.trim()));
+                }
+            });
+            const createOptions = (set, elementId) => {
+                const select = document.getElementById(elementId);
+                select.innerHTML = `<option value="all">Todos</option>`;
+                [...set].sort().forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`);
+            };
+            createOptions(platforms, 'platformFilter');
+            createOptions(styles, 'styleFilter');
+            createOptions(statuses, 'statusFilter');
+        }
+
+        function applyFilters() {
+            const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
+            const platformFilter = document.getElementById('platformFilter').value;
+            const styleFilter = document.getElementById('styleFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const filteredGames = fullData.biblioteca.filter(game => {
+                const nameMatch = nameFilter ? game.Nome.toLowerCase().includes(nameFilter) : true;
+                const platformMatch = platformFilter !== 'all' ? game.Plataforma === platformFilter : true;
+                const statusMatch = statusFilter !== 'all' ? game.Status === statusFilter : true;
+                const styleMatch = styleFilter !== 'all' ? (game.Estilo && game.Estilo.split(',').map(s=>s.trim()).includes(styleFilter)) : true;
+                return nameMatch && platformMatch && statusMatch && styleMatch;
+            });
+            updateDashboard(filteredGames);
+        }
+        
+        function updateDashboard(games) {
+            const stats = calculateStats(games);
+            const chartData = aggregateForCharts(games);
+            
+            const noDataContainer = document.getElementById('no-data');
+            const tableContainer = document.getElementById('table-section');
+            if (noDataContainer && tableContainer) {
+                noDataContainer.style.display = games.length === 0 ? 'block' : 'none';
+                tableContainer.style.display = games.length > 0 ? 'block' : 'none';
+            }
+            renderSummaryCards(stats);
+            renderCharts(games, chartData);
+            renderGamesTable(games);
+        }
+
+        function calculateStats(games) {
+            return {
+                total_jogos: games.length,
+                total_horas_jogadas: games.reduce((sum, g) => sum + (g['Tempo de Jogo'] || 0), 0),
+                custo_total_biblioteca: games.reduce((sum, g) => sum + (g['Preço'] || 0), 0),
+                media_notas: games.filter(g => g.Nota != null && g.Nota > 0).length > 0 ? (games.filter(g => g.Nota != null).reduce((sum, g) => sum + (g.Nota || 0), 0) / games.filter(g => g.Nota != null && g.Nota > 0).length).toFixed(2) : 0,
+                total_platinados: games.filter(g => g['Platinado?'] === 'Sim').length
+            };
+        }
+
+        function aggregateForCharts(games) {
+            const platformCounts = games.reduce((acc, g) => { if(g.Plataforma) {acc[g.Plataforma] = (acc[g.Plataforma] || 0) + 1;} return acc; }, {});
+            const styleCounts = games.reduce((acc, g) => {
+                if (g.Estilo) { g.Estilo.split(',').forEach(style => { const s = style.trim(); acc[s] = (acc[s] || 0) + 1; }); }
+                return acc;
+            }, {});
+            return { jogos_por_plataforma: platformCounts, jogos_por_estilo: styleCounts };
+        }
+        
+        function renderSummaryCards(stats) {
+            const container = document.getElementById('summary');
+            if(!container) return;
+            const formatCurrency = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const cards = [
+                { t: 'Total de Jogos', v: stats.total_jogos, i: 'sports_esports' },
+                { t: 'Horas Jogadas', v: `${stats.total_horas_jogadas.toLocaleString('pt-BR')}h`, i: 'timer' },
+                { t: 'Custo Total', v: formatCurrency(stats.custo_total_biblioteca), i: 'shopping_cart' },
+                { t: 'Média das Notas', v: stats.media_notas, i: 'star', h: true },
+                { t: 'Jogos Platinados', v: stats.total_platinados, i: 'military_tech', h: true }
+            ];
+            container.innerHTML = cards.map(c => `<article class="card"><div class="card-header"><span class="material-symbols-outlined">${c.i}</span><span>${c.t}</span></div><div class="card-content"><p class="value ${c.h ? 'highlight' : ''}">${c.v}</p></div></article>`).join('');
+        }
+
+        function destroyCharts() { Object.values(charts).forEach(c => c && c.destroy()); charts = {}; }
+
+        function renderCharts(games, chartData) {
+            destroyCharts();
+            
+            const primaryTextColor = getComputedStyle(document.body).getPropertyValue('--primary-text').trim();
+            const borderColor = getComputedStyle(document.body).getPropertyValue('--border-color').trim();
+            const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface-color').trim();
+            const accentPurple = getComputedStyle(document.body).getPropertyValue('--accent-purple').trim();
+            const secondaryText = getComputedStyle(document.body).getPropertyValue('--secondary-text').trim();
+
+            const platinadosCtx = document.getElementById('platinadosChart');
+            if (platinadosCtx) {
+                const platinados = games.filter(g => g['Platinado?'] === 'Sim').length;
+                const naoPlatinados = games.length - platinados;
+                charts.platinados = new Chart(platinadosCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Platinado', 'Não Platinado'],
+                        datasets: [{ 
+                            data: [platinados, naoPlatinados],
+                            backgroundColor: [accentPurple + 'BF', '#d9d9d9' + 'BF'],
+                            borderColor: surfaceColor, 
+                            borderWidth: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: primaryTextColor } } } }
+                });
+            }
+
+            const platformCtx = document.getElementById('platformChart');
+            if (platformCtx) {
+                charts.platform = new Chart(platformCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(chartData.jogos_por_plataforma),
+                        datasets: [{ label: 'Jogos', data: Object.values(chartData.jogos_por_plataforma), backgroundColor: accentPurple+'99', borderColor: accentPurple, borderWidth: 1, borderRadius: 4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: primaryTextColor }, grid: { color: borderColor } }, y: { ticks: { color: primaryTextColor, stepSize: 1 }, grid: { color: borderColor }, beginAtZero: true } } }
+                });
+            }
+
+            const styleCtx = document.getElementById('styleChart');
+            if (styleCtx) {
+                const top5Styles = Object.entries(chartData.jogos_por_estilo).sort(([,a],[,b]) => b-a).slice(0, 5);
+                charts.style = new Chart(styleCtx, {
+                    type: 'bar',
+                    data: { labels: top5Styles.map(i => i [0]), datasets: [{ label: 'Jogos', data: top5Styles.map(i => i [1]), backgroundColor: accentPurple+'99', borderColor: accentPurple, borderWidth: 1, borderRadius: 4 }] },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: primaryTextColor, stepSize: 1 }, grid: { color: borderColor }, beginAtZero: true }, y: { ticks: { color: primaryTextColor }, grid: { display: false } } } }
+                });
+            }
+        }
+        
+        function updateChartColors() {
+             applyFilters();
+        }
+
+        function renderGamesTable(library) {
+            const tbody = document.querySelector('.games-table tbody');
+            if (!tbody) return;
+            if (!library.length) { tbody.innerHTML = ``; return; }
+            tbody.innerHTML = library
+                .sort((a,b) => (b.Nota || 0) - (a.Nota || 0))
+                .map(j => {
+                    const isPlatinado = j['Platinado?'] === 'Sim';
+                    const rowClass = isPlatinado ? 'class="platinado"' : '';
+                    const trophyIcon = `<span class="material-symbols-outlined platinum-trophy-icon">emoji_events</span>`;
+                    return `
+                        <tr ${rowClass}>
+                            <td class="game-name-cell">${isPlatinado ? trophyIcon : ''}<span>${j.Nome}</span></td>
+                            <td>${j.Plataforma || 'N/A'}</td>
+                            <td>${j['Conclusão'] || '-'}</td>
+                            <td style="font-weight: 600; color: var(--accent-purple);">${j.Nota || '-'}</td>
+                            <td>${j['Tempo de Jogo'] || '0'}h</td>
+                        </tr>
+                    `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
